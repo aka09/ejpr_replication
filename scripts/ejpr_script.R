@@ -362,6 +362,44 @@ usa_conjoint  %>%
 
 ggsave("figures/figure_7.pdf", height = 5, width = 10, dpi = 1000)
 
+###### After publication: new figure ######
+library(extrafont)
+library(ggtext)
+theme_custom <- function(legend.position = "bottom", base_size = 13,
+         hjust.y = 1, axis.text.y = element_text(hjust=0.5)){
+  theme_bw(base_size = base_size,
+           base_family = "Fira Sans") %+replace%
+    theme(legend.position = legend.position,
+          panel.grid.minor = element_blank(),
+          plot.title = element_markdown(face = "bold", size = rel(1.3), hjust = 0),
+          plot.subtitle = element_markdown(face = "plain", size = rel(1.3)),
+          axis.title = element_text(face = "bold"),
+          axis.title.x = element_text(margin = margin(t = 10), hjust = 0),
+          axis.title.y = element_text(margin = margin(r = 10), hjust = hjust.y, angle = 90),
+          axis.text.y = axis.text.y)
+}
+usa_conjoint  %>% 
+  filter(partyid == "Republican") %>% 
+  prepare_conjoint(formula = f1, by = ~trump_app, country = "usa") %>% 
+  filter(level %in% c("    Shut down Congress", "    Not be bound by courts")) %>% 
+  # to get rid of "NA" panel but keep attribute headerss
+  mutate(BY = ifelse(is.na(estimate), "Strongly approve", as.character(BY)) %>% 
+           factor(levels = c("Strongly approve", "Somewhat approve", 
+                             "Somewhat disapprove", "Strongly disapprove"))) %>% 
+  ggplot(aes(x = estimate, y = fct_rev(level) ,
+             xmin = lower, xmax = upper, col = BY)) +
+  geom_vline(xintercept = 0) +
+  geom_point(size = 3, position = position_dodge(-0.8)) +
+  geom_errorbar(width = 0, size = 1, position = position_dodge(-0.8)) +
+  labs(y = "",
+       x = "Estimated AMCE") +
+  scale_x_continuous(breaks = seq(-0.2, 0.2, 0.05),
+                     limits = c(-.22, 0.22)) +
+  scale_color_grey(name = "Trump approval") +
+  theme_custom()
+
+ggsave("figures/fig_7_afterpub.png", height = 7, width = 12)
+
 #-------------------------------------------------------------------------------#
 #### Appendix figures ####
 #-------------------------------------------------------------------------------#
